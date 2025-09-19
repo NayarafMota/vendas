@@ -1,0 +1,21 @@
+
+{
+  "name": "produtos-service",
+  "version": "1.0.0",
+  "description": "Microserviço de Produtos - Node.js",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": ["microservice", "produtos", "nodejs"],
+  "author": "Sistema de Vendas",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

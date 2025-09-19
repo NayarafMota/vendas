@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  clientes-service:
+    build: ./clientes-service
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+    depends_on:
+      - db
+
+  produtos-service:
+    build: ./produtos-service
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+    depends_on:
+      - db
+
+  vendas-service:
+    build: ./vendas-service
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - PRODUTOS_SERVICE_URL=http://produtos-service:3001
+      - CLIENTES_SERVICE_URL=http://clientes-service:3002
+    depends_on:
+      - db
+      - clientes-service
+      - produtos-service
+
+  frontend:
+    build: ./frontend-service
+    ports:
+      - "5000:5000"
+    environment:
+      - PRODUTOS_SERVICE_URL=http://produtos-service:3001
+      - CLIENTES_SERVICE_URL=http://clientes-service:3002
+      - VENDAS_SERVICE_URL=http://vendas-service:3003
+    depends_on:
+      - vendas-service
+      - clientes-service
+      - produtos-service
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: vendasdb
+      MYSQL_USER: vendas
+      MYSQL_PASSWORD: vendas
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./vendas-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  mysql_data:

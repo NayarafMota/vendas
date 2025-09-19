@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <title>Sistema de Vendas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container py-4">
+
+    <h1>Sistema de Vendas</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div>
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <h2>Realizar Venda</h2>
+    <form action="{{ url_for('realizar_venda') }}" method="post" class="mb-4">
+        <div class="mb-3">
+            <label for="cliente_id" class="form-label">Cliente</label>
+            <select id="cliente_id" name="cliente_id" class="form-select" required>
+                <option value="">Selecione o cliente</option>
+                {% for cliente in clientes %}
+                    <option value="{{ cliente.id }}">{{ cliente.nome }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="produtos-container">
+            <div class="row mb-2 produto-item">
+                <div class="col-6">
+                    <label>Produto</label>
+                    <select name="produto_id" class="form-select" required>
+                        <option value="">Selecione o produto</option>
+                        {% for produto in produtos %}
+                            <option value="{{ produto.id }}">{{ produto.nome }} - R$ {{ produto.valor }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-4">
+                    <label>Quantidade</label>
+                    <input type="number" name="quantidade" class="form-control" min="1" value="1" required>
+                </div>
+                <div class="col-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger btn-sm remover-produto">X</button>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-secondary mb-3" id="adicionar-produto">Adicionar Produto</button>
+        <br/>
+        <button type="submit" class="btn btn-primary">Realizar Venda</button>
+    </form>
+
+    <h2>Vendas Recentes</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Produtos</th>
+                <th>Valor Total</th>
+                <th>Data</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venda in vendas %}
+                <tr>
+                    <td>{{ venda.id }}</td>
+                    <td>{{ venda.cliente.nome if venda.cliente else 'N/A' }}</td>
+                    <td>
+                        <ul>
+                            {% for p in venda.produtos %}
+                                <li>
+                                    {{ p.nome_produto if p.nome_produto else 'Produto ' ~ p.produto_id }} 
+                                    x{{ p.quantidade }} (R$ {{ "%.2f"|format(p.valor_total) }})
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>R$ {{ "%.2f"|format(venda.valor_total) }}</td>
+                    <td>{{ venda.data_venda }}</td>
+                    <td>{{ venda.status }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+<script>
+    document.getElementById('adicionar-produto').addEventListener('click', () => {
+        const container = document.getElementById('produtos-container');
+        const firstProduto = container.querySelector('.produto-item');
+        const novoProduto = firstProduto.cloneNode(true);
+
+        // Resetar valores
+        novoProduto.querySelector('select').value = '';
+        novoProduto.querySelector('input').value = 1;
+
+        container.appendChild(novoProduto);
+    });
+
+    document.getElementById('produtos-container').addEventListener('click', (e) => {
+        if (e.target.classList.contains('remover-produto')) {
+            const produtos = document.querySelectorAll('.produto-item');
+            if (produtos.length > 1) {
+                e.target.closest('.produto-item').remove();
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
