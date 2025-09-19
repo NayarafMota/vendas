@@ -1,12 +1,10 @@
-FROM python:3.11-slim
+FROM python:3.9-slim
 
 WORKDIR /app
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-
 COPY . .
 
-EXPOSE 5000
+RUN pip install -r requirements.txt
 
-CMD ["python", "app.py"]
+# Adiciona um atraso de 10 segundos antes de iniciar o app
+CMD ["sh", "-c", "sleep 10 && python app.py"]

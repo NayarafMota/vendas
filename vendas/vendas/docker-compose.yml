@@ -9,6 +9,11 @@ services:
       - PORT=3002
     depends_on:
       - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   produtos-service:
     build: ./produtos-service
@@ -18,6 +23,11 @@ services:
       - PORT=3001
     depends_on:
       - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   vendas-service:
     build: ./vendas-service
@@ -31,6 +41,11 @@ services:
       - db
       - clientes-service
       - produtos-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   frontend:
     build: ./frontend-service
@@ -41,9 +56,12 @@ services:
       - CLIENTES_SERVICE_URL=http://clientes-service:3002
       - VENDAS_SERVICE_URL=http://vendas-service:3003
     depends_on:
-      - vendas-service
-      - clientes-service
-      - produtos-service
+      clientes-service:
+        condition: service_healthy
+      produtos-service:
+        condition: service_healthy
+      vendas-service:
+        condition: service_healthy
 
   db:
     image: mysql:8.0

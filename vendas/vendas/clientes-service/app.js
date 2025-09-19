@@ -67,4 +67,111 @@ app.get('/clientes/:id', (req, res) => {
 
 // Rota para cadastrar novo cliente
 app.post('/clientes', (req, res) => {
-  const { nome, telefone, email } = req
+  const { nome, telefone, email } = req.body;
+
+  // Validações básicas
+  if (!nome || !telefone || !email) {
+    return res.status(400).json({
+      success: false,
+      message: 'Nome, telefone e email são obrigatórios'
+    });
+  }
+
+  if (!validarTelefone(telefone)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Telefone inválido. Formato esperado: (XX) XXXXX-XXXX'
+    });
+  }
+
+  if (!validarEmail(email)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email inválido'
+    });
+  }
+
+  // Cria novo cliente
+  const novoCliente = {
+    id: proximoId++,
+    nome,
+    telefone,
+    email,
+    dataCadastro: new Date().toISOString()
+  };
+
+  clientes.push(novoCliente);
+
+  res.status(201).json({
+    success: true,
+    data: novoCliente
+  });
+});
+
+// Rota para atualizar cliente por ID
+app.put('/clientes/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const clienteIndex = clientes.findIndex(c => c.id === id);
+
+  if (clienteIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: 'Cliente não encontrado'
+    });
+  }
+
+  const { nome, telefone, email } = req.body;
+
+  if (telefone && !validarTelefone(telefone)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Telefone inválido. Formato esperado: (XX) XXXXX-XXXX'
+    });
+  }
+
+  if (email && !validarEmail(email)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email inválido'
+    });
+  }
+
+  // Atualiza dados do cliente
+  clientes[clienteIndex] = {
+    ...clientes[clienteIndex],
+    nome: nome || clientes[clienteIndex].nome,
+    telefone: telefone || clientes[clienteIndex].telefone,
+    email: email || clientes[clienteIndex].email
+  };
+
+  res.json({
+    success: true,
+    data: clientes[clienteIndex]
+  });
+});
+
+// Rota para deletar cliente por ID
+app.delete('/clientes/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const clienteIndex = clientes.findIndex(c => c.id === id);
+
+  if (clienteIndex === -1) {
+    return res.status(404).json({
+      success: false,
+      message: 'Cliente não encontrado'
+    });
+  }
+
+  clientes.splice(clienteIndex, 1);
+
+  res.json({
+    success: true,
+    message: 'Cliente deletado com sucesso'
+  });
+});
+
+const PORT = process.env.PORT || 3002;
+
+app.listen(PORT, () => {
+  console.log(`🧑‍🤝‍🧑 Microserviço de Clientes rodando na porta ${PORT}`);
+});
